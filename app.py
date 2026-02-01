@@ -6,7 +6,7 @@ import cv2 as cv
 
 st.title("Food detection")
 
-model = YOLO("model/best.pt")
+model = YOLO("best.pt")
 st.success("Model loaded")
 
 mode = st.radio(
