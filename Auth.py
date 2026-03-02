@@ -19,7 +19,7 @@ class AuthManager:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
-                password_hash TEXT NOT NULL
+                password_hash TEXT NOT NULL  
             )
         """)
         conn.commit()

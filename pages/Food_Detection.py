@@ -10,6 +10,12 @@ if "logged_in" not in st.session_state or not st.session_state.logged_in:
     st.switch_page("front.py")
     st.stop()
 
+if "manual_meal_id" not in st.session_state:
+    st.session_state.manual_meal_id = None
+
+if "camera_open" not in st.session_state:
+    st.session_state.camera_open = False
+
 user = User(st.session_state.username)
 st.title("Log food")
 # =========================================================
@@ -88,34 +94,66 @@ if st.session_state.get("camera_open", False):
 # 🔎 LIVE SEARCH MODE
 # =========================================================
 
+
+# Create layout columns FIRST
+col_food, col_qty = st.columns([5, 1])
+
 selected_food = None
+qty = None
 
 if search_query:
     matches = user.suggest_similar_foods(search_query)
 
     if matches:
-        selected_food = st.selectbox(
-            "",
-            matches,
-            label_visibility="collapsed"
-        )
+        # Put selectbox inside first column
+        with col_food:
+            selected_food = st.selectbox(
+                "",
+                matches,
+                label_visibility="collapsed",
+                key="food_select"
+            )
+
+        # Put quantity box inside second column
+        with col_qty:
+            qty = st.number_input(
+                "",
+                min_value=0.1,
+                max_value=1000.0,
+                value=100.0,
+                label_visibility="collapsed",
+                key="qty_input"
+            )
     else:
         st.warning("No matching foods found.")
-if selected_food is not None:
-    qty = st.number_input(
-    "",
-    min_value=1,
-    max_value=1000,
-    value=100,
-    label_visibility="collapsed"
- )
 
+
+if selected_food is not None:
+    nutrition = user.get_food_info(selected_food)
+
+    if nutrition is None:
+        st.error("Food not found in database.")
+    else:
+        calories, carbs, protein, fats, sugar, fibre = nutrition
+
+        st.subheader("Meal Summary per 100g")
+        st.metric("Calories", f"{calories:.2f} kcal")
+        st.write(f"Carbs: {carbs:.2f} g")
+        st.write(f"Protein: {protein:.2f} g")
+        st.write(f"Fats: {fats:.2f} g")
+        st.write(f"Fibre: {fibre:.2f} g")
+        st.write(f"Sugar: {sugar:.2f} g")
+
+        
 # Maintain active meal session
     if "manual_meal_id" not in st.session_state:
      st.session_state.manual_meal_id = None
 
     if st.button("Add Food"):
         if selected_food:
+            
+
+
             if st.session_state.manual_meal_id is None:
                 st.session_state.manual_meal_id = user.create_meal()
 
@@ -140,4 +178,15 @@ if st.session_state.manual_meal_id:
         st.write(f"Fibre: {fibre:.2f} g")
         st.write(f"Sugar: {sugar:.2f} g")
 
-        st.session_state.manual_meal_id = None
+        
+
+
+st.header("Logged Meals")
+
+st.write("Breakfast")
+
+st.write("Lunch")
+
+st.write("Snacks")
+
+st.write("Dinner")

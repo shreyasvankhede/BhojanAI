@@ -32,9 +32,9 @@ class MealType:
 class User:
     
     def __init__(self, username):
-        self.name = username
-        self.hash_name=hashlib.sha256(username.encode()).hexdigest()
-        self.USER_PATH = f"data/{self.hash_name}.sqlite"
+        self.username =username
+        self.hash_name=hashlib.sha256((username.strip().lower()).encode()).hexdigest()
+        self.USER_PATH = f"data/Users/{self.hash_name}.sqlite"
 
     # -------------------------
     # FOOD LOOKUP
@@ -87,7 +87,7 @@ class User:
         conn = sqlite3.connect(self.USER_PATH)
         cursor = conn.cursor()
 
-        cursor.execute("INSERT INTO meals DEFAULT VALUES")
+        cursor.execute("INSERT INTO meal_items DEFAULT VALUES")
         meal_id = cursor.lastrowid
 
         conn.commit()
@@ -105,7 +105,7 @@ class User:
     # -------------------------
     # ADD FOOD TO MEAL
     # -------------------------
-    def add_food_to_meal(self, meal_id, food, quantity=100):
+    def add_food_to_meal(self, meal_id, food, quantity=1):
         nutrition = self.get_food_info(food)
 
         if nutrition is None:
