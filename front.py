@@ -1,7 +1,7 @@
 import streamlit as st
 from Auth import AuthManager
 from calorie_counter import User
-
+from navbar import render_navbar
 auth = AuthManager()
 
 # ---------------- SESSION INIT ----------------
@@ -19,13 +19,11 @@ if st.session_state.logged_in:
     st.switch_page("pages/Food_Detection.py")
     st.stop()
 
-st.title("AI Calorie Tracker")
+render_navbar()
 
 tab1, tab2 = st.tabs(["Login", "Register"])
 
-# =========================================================
-# LOGIN
-# =========================================================
+
 with tab1:
 
     u = st.text_input("Username", key="login_user")
@@ -42,9 +40,7 @@ with tab1:
         else:
             st.error("Invalid credentials")
 
-# =========================================================
-# REGISTER
-# =========================================================
+
 with tab2:
 
     st.subheader("Create Account")
@@ -55,13 +51,13 @@ with tab2:
 
     st.markdown("### Profile Details")
     Name=st.text_input("Name")
-    age = st.number_input("Age", min_value=10, max_value=100, step=1)
-    gender = st.selectbox("Gender", ("Male", "Female"))
-    weight = st.number_input("Weight (kg)", min_value=30.0, max_value=200.0)
-    height = st.number_input("Height (cm)", min_value=120.0, max_value=220.0)
+    age = st.number_input("Age", min_value=10, max_value=100, step=1,value=20)
+    gender = st.selectbox("Gender", ("Male", "Female"),placeholder="Select gender")
+    weight = st.number_input("Weight (kg)", min_value=30.0, max_value=200.0,value=60.0)
+    height = st.number_input("Height (cm)", min_value=120.0, max_value=220.0,value=170.0)
     activity = st.selectbox(
         "Activity Level",
-        ("sedentary", "light", "moderate", "active")
+        ("sedentary ", "light", "moderate", "active")
     )
 
     if p and confirm_p and p != confirm_p:

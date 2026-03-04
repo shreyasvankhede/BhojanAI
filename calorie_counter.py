@@ -8,13 +8,13 @@ import hashlib
 import pandas as pd
 
 
-# -------------------------
+ 
 # GLOBAL CONFIG
-# -------------------------
+ 
 DB_PATH = "data/food_db.sqlite"
 
 # Load model ONLY once
-MODEL = YOLO("model/best.pt")
+MODEL = YOLO("model/food_model.pt")
 
 DATE = datetime.now().strftime("%Y-%m-%d")
 
@@ -26,9 +26,9 @@ class MealType:
     SNACKS = 3
 
 
-# -------------------------
+
 # USER CLASS = CALORIE TRACKER ENGINE
-# -------------------------
+
 class User:
     
     def __init__(self, username):
@@ -71,10 +71,9 @@ class User:
         result = cursor.fetchone()
         conn.close()
         return result
- 
-    # -------------------------
+
     # FOOD LOOKUP
-    # -------------------------
+   
 
     def get_name(self):
         conn = sqlite3.connect(self.USER_PATH)
@@ -84,7 +83,7 @@ class User:
         conn.close()
         return name
     
-    def get_food_info(self, food):
+    def get_food_info(self, food,qty=100):
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
 
@@ -97,11 +96,12 @@ class User:
 
         result = cursor.fetchone()
         conn.close()
+        result=self.calculate_nutrition(result,qty)
         return result
 
-    # -------------------------
+     
     # FUZZY SEARCH
-    # -------------------------
+     
     def get_all_food_names(self):
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -124,15 +124,15 @@ class User:
 
         return [name for name, score, _ in matches]
 
-    # -------------------------
+     
     # CALCULATION (PER 100g → quantity)
-    # -------------------------
+     
     def calculate_nutrition(self, nutrition, quantity):
         return tuple(x * quantity / 100 for x in nutrition)
 
-    # -------------------------
+     
     # ADD FOOD TO MEAL
-    # -------------------------
+     
     def add_food_to_meal(self, meal_type: str, food, quantity=100, date=DATE):
 
         nutrition = self.get_food_info(food)
@@ -161,9 +161,9 @@ class User:
         conn.commit()
         conn.close()
 
-    # -------------------------
+     
     # CALCULATE SINGLE MEAL TOTAL
-    # -------------------------
+     
     def calculate_meal_cals(self, meal_type, date=DATE):
 
         meal_type = meal_type.upper()
@@ -196,9 +196,9 @@ class User:
 
         return tuple(x or 0 for x in result)
 
-    # -------------------------
+     
     # DAILY TOTAL
-    # -------------------------
+     
     def calculate_daily_macros(self, date=DATE):
 
         conn = self._get_conn()
@@ -227,9 +227,9 @@ class User:
 
         return tuple(x or 0 for x in result)
 
-    # -------------------------
+     
     # EDIT / DELETE ENTRY
-    # -------------------------
+     
     def change_entry(self, item_id, new_quantity=None, delete_entry=False):
 
         conn = self._get_conn()
@@ -289,9 +289,9 @@ class User:
         conn.close()
         return df
 
-    # -------------------------
+     
     # YOLO DETECTION
-    # -------------------------
+     
     def detect_food(self, img):
         if img is None:
             return None

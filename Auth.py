@@ -11,9 +11,9 @@ class AuthManager:
     def __init__(self):
         self._init_db()
 
-    # -------------------------
+     
     # DB INITIALIZATION
-    # -------------------------
+     
     def _init_db(self):
         conn = sqlite3.connect(AUTH_DB)
         conn.execute("""
@@ -25,15 +25,15 @@ class AuthManager:
         conn.commit()
         conn.close()
 
-    # -------------------------
+     
     # PASSWORD HASHING
-    # -------------------------
+     
     def _hash(self, password: str) -> str:
         return hashlib.sha256(password.encode()).hexdigest()
 
-    # -------------------------
+     
     # REGISTER
-    # -------------------------
+     
     def register(self, username, password):
         username = username.strip().lower()
         password_hash = self._hash(password)
@@ -54,9 +54,9 @@ class AuthManager:
         finally:
             conn.close()
 
-    # -------------------------
+     
     # LOGIN
-    # -------------------------
+     
     def login(self, username, password):
         username = username.strip().lower()
         password_hash = self._hash(password)
@@ -76,9 +76,9 @@ class AuthManager:
 
         return row[0] == password_hash
 
-    # -------------------------
+     
     # CHANGE PASSWORD
-    # -------------------------
+     
     def change_password(self, username, old_pass, new_pass):
         if not self.login(username, old_pass):
             return False

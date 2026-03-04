@@ -2,9 +2,9 @@ import streamlit as st
 from calorie_counter import User
 from navbar import render_navbar
 
-# =========================================================
+ 
 # Page Config
-# =========================================================
+ 
 st.set_page_config(layout="wide")
 
 # Controlled width + smaller fonts
@@ -14,28 +14,26 @@ st.markdown("""
     max-width: 1100px;
     padding-top: 2rem;
 }
-
 [data-testid="stMetricLabel"] {
     font-size: 14px !important;
 }
 [data-testid="stMetricValue"] {
-    font-size: 20px !important;
+    font-size: 22px !important;
 }
-p {
-    font-size: 14px;
+.macro-label {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 2px;
 }
-h3 {
-    font-size: 20px !important;
-}
-h2 {
-    font-size: 24px !important;
+.macro-row {
+    margin-bottom: 12px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# =========================================================
+ 
 # 🔐 Require Login
-# =========================================================
+ 
 if "logged_in" not in st.session_state or not st.session_state.logged_in:
     st.warning("Please login first.")
     st.switch_page("front.py")
@@ -51,14 +49,40 @@ if "camera_open" not in st.session_state:
 
 user = User(st.session_state.username)
 
-# =========================================================
+ 
 # TITLE
-# =========================================================
-st.title("Log Food")
+ 
+st.subheader("Log Food")
+# NUTRITION SUMMARY
+ 
+def nutri(food, user, meal_type=None, qty=None):
+    if food:
+        nutrition = user.get_food_info(food,qty) 
+        if nutrition:
+            calories, carbs, protein, fats, sugar, fibre = nutrition
 
-# =========================================================
+            st.markdown(f"### Nutrition based on quantity ({qty}g)")
+
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Calories", f"{calories:.0f} kcal")
+            c2.metric("Carbs", f"{carbs:.1f} g")
+            c3.metric("Protein", f"{protein:.1f} g")
+
+            c4, c5, c6 = st.columns(3)
+            c4.metric("Fats", f"{fats:.1f} g")
+            c5.metric("Fibre", f"{fibre:.1f} g")
+            c6.metric("Sugar", f"{sugar:.1f} g")
+
+            if st.button("Add Food", key=f"add_{food}"):
+                if meal_type:
+                    user.add_food_to_meal(meal_type, food, qty)
+                    st.success(f"{food} added!")
+                else:
+                    st.warning("Please select meal type")
+
+ 
 # SEARCH + CAMERA
-# =========================================================
+ 
 col_search, col_cam = st.columns([5, 1])
 
 with col_search:
@@ -72,9 +96,9 @@ with col_cam:
     if st.button("📷", use_container_width=True):
         st.session_state.camera_open = True
 
-# =========================================================
+ 
 # CAMERA MODE (Camera + Upload)
-# =========================================================
+selected_food = None
 if st.session_state.camera_open:
 
     st.markdown("### Scan Food")
@@ -129,7 +153,6 @@ if st.session_state.camera_open:
 
                 for idx, food in enumerate(set(detected_names)):
 
-                  
                     st.markdown(f"**Detected:** {food}")
 
                     suggestions = user.suggest_similar_foods(food)
@@ -148,24 +171,13 @@ if st.session_state.camera_open:
                             "Quantity (g)",
                             min_value=1,
                             max_value=1000,
-                            value=100,   
+                            value=100,
                             key=f"cam_qty_{idx}"
                         )
 
                     confirmed_items.append((corrected, qty))
+                    nutri(corrected, user, meal_type=meal_type, qty=qty)  
                     st.divider()
-
-                if st.button("Add Detected Meal", use_container_width=True):
-
-                    if not meal_type:
-                        st.warning("Please select meal type")
-                    else:
-                        for food, qty in confirmed_items:
-                            user.add_food_to_meal(meal_type, food, qty)
-
-                        st.success("Meal logged successfully!")
-                        st.session_state.camera_open = False
-                        st.rerun()
 
             else:
                 st.warning("No food detected.")
@@ -173,16 +185,16 @@ if st.session_state.camera_open:
         else:
             st.warning("Detection failed.")
 
-# =========================================================
+ 
 # SEARCH MODE
-# =========================================================
+ 
 col_food, col_qty, col_meal = st.columns([4, 1.5, 2])
 
-selected_food = None
+
 qty = None
 meal_type = None
-
-if search_query:
+if not st.session_state.camera_open:
+ if search_query:
 
     matches = user.suggest_similar_foods(search_query)
 
@@ -190,9 +202,8 @@ if search_query:
 
         with col_food:
             selected_food = st.selectbox(
-                "",
+                "Select food",
                 matches,
-                label_visibility="collapsed"
             )
 
         with col_qty:
@@ -213,38 +224,13 @@ if search_query:
     else:
         st.warning("No matching foods found.")
 
-# =========================================================
-# NUTRITION SUMMARY
-# =========================================================
-if selected_food:
+nutri(selected_food, user, meal_type=meal_type, qty=qty)
 
-    nutrition = user.get_food_info(selected_food)
+ 
 
-    if nutrition:
-        calories, carbs, protein, fats, sugar, fibre = nutrition
-
-        st.markdown("### Nutrition (per 100g)")
-
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Calories", f"{calories:.0f} kcal")
-        c2.metric("Carbs", f"{carbs:.1f} g")
-        c3.metric("Protein", f"{protein:.1f} g")
-
-        c4, c5, c6 = st.columns(3)
-        c4.metric("Fats", f"{fats:.1f} g")
-        c5.metric("Fibre", f"{fibre:.1f} g")
-        c6.metric("Sugar", f"{sugar:.1f} g")
-
-        if st.button("Add Food"):
-            if meal_type:
-                user.add_food_to_meal(meal_type, selected_food, qty)
-                st.success(f"{selected_food} added!")
-            else:
-                st.warning("Please select meal type")
-
-# =========================================================
+ 
 # LOGGED MEALS
-# =========================================================
+ 
 st.divider()
 st.header("Logged Meals")
 
@@ -252,9 +238,9 @@ daily_macros = user.calculate_daily_macros()
 daily_cal = daily_macros[0]
 st.metric("Today's Total Calories", f"{daily_cal:.0f} kcal")
 
-# =========================================================
+ 
 # Meal Renderer
-# =========================================================
+ 
 def render_meal_section(meal_name):
 
     st.markdown(f"### {meal_name}")
@@ -271,7 +257,7 @@ def render_meal_section(meal_name):
     # Keep full copy for comparison
     original_df = df.copy()
 
-    # Rename columns for UI (DO NOT drop item_id)
+    # Rename columns for UI 
     df = df.rename(columns={
         "dish_name": "Food",
         "quantity_g": "Quantity (g)",
@@ -283,7 +269,7 @@ def render_meal_section(meal_name):
         "sugar": "Sugar (g)"
     })
 
-    # Add serial number column (for display only)
+    # Add serial number column 
     df = df.reset_index(drop=True)
     df.insert(0, "Sr No", df.index + 1)
 
@@ -291,7 +277,7 @@ def render_meal_section(meal_name):
     edited_df = st.data_editor(
         df,
         column_config={
-            "item_id": None,  # 🔥 Hide ID visually but keep internally
+            "item_id": None,  
             "Sr No": st.column_config.NumberColumn("Sr", disabled=True, width="xxsmall"),
             "Food": st.column_config.TextColumn("Food", disabled=True),
             "Quantity (g)": st.column_config.NumberColumn("Qty (g)"),
@@ -308,9 +294,8 @@ def render_meal_section(meal_name):
         key=f"{meal_name}_editor"
     )
 
-    # =====================================================
-    # DELETE LOGIC (Robust)
-    # =====================================================
+    # DELETE LOGIC 
+  
     original_ids = set(original_df["item_id"])
     edited_ids = set(edited_df["item_id"])
 
@@ -321,9 +306,8 @@ def render_meal_section(meal_name):
             user.change_entry(item_id, delete_entry=True)
         st.rerun()
 
-    # =====================================================
-    # UPDATE LOGIC (Quantity Change)
-    # =====================================================
+  
+    # UPDATE LOGIC 
     for _, row in edited_df.iterrows():
 
         item_id = row["item_id"]
