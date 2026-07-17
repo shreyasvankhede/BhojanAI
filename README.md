@@ -185,6 +185,8 @@ docker pull shreyasvankhede/bhojanai-indianfoodcalorietracker:latest
 docker run -p 8501:8501 \
   shreyasvankhede/bhojanai-indianfoodcalorietracker:latest
 ```
+ ##Open:
+  http://localhost:8501
 
 ## Setup on source code
 ```bash
