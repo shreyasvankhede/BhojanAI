@@ -9,3 +9,4 @@ ultralytics==8.4.8
 ultralytics-thop==2.0.18
 rapidfuzz
 opencv-python
+
