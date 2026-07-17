@@ -177,13 +177,21 @@ bhojanai/
 
 ---
 
-## Setup
+## Run with Docker
 
+```bash
+docker pull shreyasvankhede/bhojanai-indianfoodcalorietracker:latest
+
+docker run -p 8501:8501 \
+  shreyasvankhede/bhojanai-indianfoodcalorietracker:latest
+```
+
+## Setup on source code
 ```bash
 git clone https://github.com/shreyasvankhede/BhojanAI.git
 cd bhojanai
 pip install -r requirements.txt
-streamlit run app.py
+streamlit run front.py
 ```
 
 **requirements.txt**
